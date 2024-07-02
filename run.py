@@ -88,18 +88,25 @@ if uploaded_files:
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
     # Directory input for saving annotations
-    st.write("Enter a directory to save annotations. Ensure the directory exists on your machine.")
-    save_path_directory = st.text_input("Directory path:")
+    st.write("Select a file from the directory where you want to save annotations. The file will not be used.")
+    dummy_file = st.file_uploader("Choose a file from the desired directory...", type=["jpg", "jpeg", "png", "txt", "csv", "pdf", "docx"])
+
+    if dummy_file:
+        save_path_directory = os.path.dirname(dummy_file.name)
+        st.write(f"Selected directory: {save_path_directory}")
+    else:
+        save_path_directory = None
 
     # Save annotations
     if st.button("Save Annotations"):
-        if os.path.exists(save_path_directory):
+        if save_path_directory and os.path.exists(save_path_directory):
             annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
             save_annotations(annotations_list, save_path_directory)
             # Reset session state
             st.session_state.annotations = {}
             st.session_state.current_index = 0
         else:
-            st.error("The directory does not exist. Please enter a valid directory path.")
+            st.error("Please select a file from the desired directory to save annotations.")
+
 
 
