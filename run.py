@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import os
+from pathlib import Path
 
 # Function to save annotations to a CSV file
 def save_annotations(annotations, directory):
@@ -87,25 +88,22 @@ if uploaded_files:
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
-    # Directory input for saving annotations
-    save_path_directory = st.text_input("Enter directory to save annotations:")
+    # Determine default download directory based on the user's OS
+    if os.name == 'nt':  # for Windows
+        default_download_dir = str(Path.home() / "Downloads")
+    else:  # for Unix-like systems
+        default_download_dir = str(Path.home() / "Downloads")
 
-    if save_path_directory:
-        st.write(f"Checking if directory exists: {save_path_directory}")
-        if os.path.exists(save_path_directory):
-            st.success(f"Directory {save_path_directory} is valid. You can save annotations.")
-            st.write(f"Contents of {save_path_directory}:")
-            st.write(os.listdir(save_path_directory))
-        else:
-            st.error(f"Directory {save_path_directory} does not exist. Please enter a valid directory.")
-
+    st.write(f"Default download directory: {default_download_dir}")
+    
     # Save annotations
     if st.button("Save Annotations"):
-        if save_path_directory and os.path.exists(save_path_directory):
+        if os.path.exists(default_download_dir):
             annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-            save_annotations(annotations_list, save_path_directory)
+            save_annotations(annotations_list, default_download_dir)
             # Reset session state
             st.session_state.annotations = {}
             st.session_state.current_index = 0
         else:
-            st.error("Please enter a valid directory to save annotations.")
+            st.error("The default download directory does not exist. Please ensure your system has a Downloads directory.")
+
