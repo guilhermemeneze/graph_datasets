@@ -1,3 +1,9 @@
+import subprocess
+import sys
+
+# Install PyGithub
+subprocess.check_call([sys.executable, "-m", "pip", "install", "PyGithub"])
+
 import streamlit as st
 from PIL import Image
 import pandas as pd
@@ -102,4 +108,3 @@ if uploaded_files:
             st.session_state.current_index = 0
         else:
             st.warning("Please fill in all GitHub details.")
-
