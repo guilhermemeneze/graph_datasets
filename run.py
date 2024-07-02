@@ -62,7 +62,7 @@ if uploaded_files:
 
     # Class selection using radio buttons
     st.write("Select class for this image:")
-    class_options = ['None'] + ['Unreadable','Bacterial feeder', 'Fungal feeder', 'Plant parasite', 'Omnivore', 'Predator']
+    class_options = ['None'] + ['Unreadable', 'Bacterial feeder', 'Fungal feeder', 'Plant parasite', 'Omnivore', 'Predator']
     current_annotation = st.session_state.annotations.get(current_file.name, 'None')
 
     selected_class = st.radio("Class", class_options, index=class_options.index(current_annotation))
@@ -79,7 +79,7 @@ if uploaded_files:
             st.session_state.class_label = None
             st.experimental_rerun()
     with col3:
-        if st.button("Next Image") and st.session_state.current_index < total_images - 1):
+        if st.button("Next Image") and st.session_state.current_index < total_images - 1:
             annotate_image()
             st.session_state.current_index = (st.session_state.current_index + 1) % total_images
             st.session_state.class_label = None
@@ -101,5 +101,3 @@ if uploaded_files:
             file_name="annotations.csv",
             mime="text/csv"
         )
-
-    
