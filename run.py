@@ -7,8 +7,8 @@ import requests
 
 # GitHub details
 GITHUB_TOKEN = "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"
-GITHUB_REPO = "guilhermemeneze/annotations"
-GITHUB_PATH = "annotations"  # Path in the repository where annotations will be saved
+GITHUB_REPO = "guilhermemeneze"
+GITHUB_PATH = "graph_datasets"  # Path in the repository where annotations will be saved
 
 # Function to save annotations to GitHub
 def save_annotations_to_github(annotations):
