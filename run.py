@@ -7,8 +7,8 @@ import requests
 
 # GitHub details
 GITHUB_TOKEN = "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"
-GITHUB_REPO = "guilhermemeneze"
-GITHUB_PATH = "graph_datasets"  # Path in the repository where annotations will be saved
+GITHUB_REPO = "guilhermemeneze/annotations"
+GITHUB_PATH = "annotations"  # Path in the repository where annotations will be saved
 
 # Function to save annotations to GitHub
 def save_annotations_to_github(annotations):
@@ -34,18 +34,21 @@ def save_annotations_to_github(annotations):
             "content": base64_content,
             "sha": sha
         }
-    else:
+    elif response.status_code == 404:
         # File does not exist, create it
         data = {
             "message": "Create annotations",
             "content": base64_content
         }
+    else:
+        st.error(f"Failed to check file status: {response.status_code} {response.json()}")
+        return
 
     response = requests.put(url, headers=headers, json=data)
     if response.status_code in [200, 201]:
         st.success(f"Annotations saved to GitHub at {file_path}")
     else:
-        st.error("Failed to save annotations to GitHub")
+        st.error(f"Failed to save annotations to GitHub: {response.status_code} {response.json()}")
 
 # Streamlit app
 st.title("Image Annotation Tool")
