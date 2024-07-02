@@ -2,7 +2,6 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import os
-from pathlib import Path
 
 # Function to save annotations to a CSV file
 def save_annotations(annotations, directory):
@@ -88,22 +87,17 @@ if uploaded_files:
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
-    # Determine default download directory based on the user's OS
-    if os.name == 'nt':  # for Windows
-        default_download_dir = str(Path.home() / "Downloads")
-    else:  # for Unix-like systems
-        default_download_dir = str(Path.home() / "Downloads")
-
-    st.write(f"Default download directory: {default_download_dir}")
+    # Directory input for saving annotations
+    save_path_directory = st.text_input("Enter directory to save annotations:", "C:\\Users\\Badger\\Downloads")
+    if not os.path.exists(save_path_directory):
+        st.warning(f"Directory {save_path_directory} does not exist. Please enter a valid directory.")
     
     # Save annotations
-    if st.button("Save Annotations"):
-        if os.path.exists(default_download_dir):
-            annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-            save_annotations(annotations_list, default_download_dir)
-            # Reset session state
-            st.session_state.annotations = {}
-            st.session_state.current_index = 0
-        else:
-            st.error("The default download directory does not exist. Please ensure your system has a Downloads directory.")
+    if st.button("Save Annotations") and os.path.exists(save_path_directory):
+        annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
+        save_annotations(annotations_list, save_path_directory)
+        # Reset session state
+        st.session_state.annotations = {}
+        st.session_state.current_index = 0
+
 
