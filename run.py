@@ -105,6 +105,3 @@ if uploaded_files:
 
 
 
-
-
-
