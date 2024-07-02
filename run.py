@@ -93,14 +93,16 @@ if uploaded_files:
         st.warning(f"Directory {save_path_directory} does not exist. Please enter a valid directory.")
     
     # Save annotations
-    if st.button("Save Annotations") and os.path.exists(save_path_directory):
-        annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-        save_annotations(annotations_list, save_path_directory)
-        # Reset session state
-        st.session_state.annotations = {}
-        st.session_state.current_index = 0
-    elif st.button("Save Annotations"):
-        st.error("Please enter a valid directory to save annotations.")
+    if st.button("Save Annotations"):
+        if os.path.exists(save_path_directory):
+            annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
+            save_annotations(annotations_list, save_path_directory)
+            # Reset session state
+            st.session_state.annotations = {}
+            st.session_state.current_index = 0
+        else:
+            st.error("Please enter a valid directory to save annotations.")
+
 
 
 
