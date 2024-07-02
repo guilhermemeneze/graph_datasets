@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jun 24 12:18:56 2024
-
-@author: Badger
-"""
-
 import streamlit as st
 from PIL import Image
 import pandas as pd
@@ -95,8 +88,8 @@ if uploaded_files:
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
     # Directory input for saving annotations
-    save_path_directory = st.text_input("Enter directory to save annotations:", "C:\\Users\\Badger\\Downloads")
-    if not os.path.exists(save_path_directory):
+    save_path_directory = st.text_input("Enter directory to save annotations:")
+    if save_path_directory and not os.path.exists(save_path_directory):
         st.warning(f"Directory {save_path_directory} does not exist. Please enter a valid directory.")
     
     # Save annotations
@@ -106,7 +99,8 @@ if uploaded_files:
         # Reset session state
         st.session_state.annotations = {}
         st.session_state.current_index = 0
-
+    elif st.button("Save Annotations"):
+        st.error("Please enter a valid directory to save annotations.")
 
 
 
