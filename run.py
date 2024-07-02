@@ -87,9 +87,13 @@ if uploaded_files:
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
+    # Directory input for saving annotations
+    save_path_directory = st.text_input("Enter directory to save annotations:", "C:\\Users\\Badger\\Downloads")
+    if not os.path.exists(save_path_directory):
+        st.warning(f"Directory {save_path_directory} does not exist. Please enter a valid directory.")
+    
     # Save annotations
-    if st.button("Save Annotations"):
-        save_path_directory = "C:\\Users\\Badger\\Downloads"
+    if st.button("Save Annotations") and os.path.exists(save_path_directory):
         annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
         save_annotations(annotations_list, save_path_directory)
         # Reset session state
