@@ -1,3 +1,6 @@
+pip install PyDrive
+pip install google-auth google-auth-oauthlib google-auth-httplib2
+
 import streamlit as st
 from PIL import Image
 import pandas as pd
