@@ -6,7 +6,7 @@ import base64
 import requests
 
 # GitHub details
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "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"
 GITHUB_REPO = "guilhermemeneze/annotations"
 GITHUB_PATH = "annotations"  # Path in the repository where annotations will be saved
 
