@@ -1,20 +1,29 @@
 import streamlit as st
 from PIL import Image
 import pandas as pd
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 import os
 
-# Function to save annotations locally
-def save_annotations_locally(annotations, directory):
+# Function to save annotations to Google Drive
+def save_annotations_to_drive(annotations, folder_id):
+    # Authenticate and create the PyDrive client
+    gauth = GoogleAuth()
+    gauth.LocalWebserverAuth()  # This will create a web server and automatically handle authentication.
+
+    drive = GoogleDrive(gauth)
+
+    # Create a DataFrame and save as CSV
     df = pd.DataFrame(annotations, columns=['Image Name', 'Class'])
-    
-    # Ensure directory exists
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    
-    # Save to a file
-    file_path = os.path.join(directory, "annotations.csv")
+    file_path = "annotations.csv"
     df.to_csv(file_path, index=False)
-    st.success(f"Annotations saved locally at {file_path}")
+
+    # Create a file in Google Drive
+    gfile = drive.CreateFile({'parents': [{'id': folder_id}], 'title': 'annotations.csv'})
+    gfile.SetContentFile(file_path)
+    gfile.Upload()
+
+    st.success(f"Annotations saved to Google Drive in folder ID: {folder_id}")
 
 # Streamlit app
 st.title("Image Annotation Tool")
@@ -85,13 +94,10 @@ if uploaded_files:
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
     # Save annotations
-    save_path_directory = st.text_input("Enter directory to save annotations:", "annotations")
-    if not os.path.exists(save_path_directory):
-        st.warning(f"Directory {save_path_directory} does not exist. Please enter a valid directory.")
-
+    folder_id = "1cH0XlTJDGriYfVbSeUDSFsDdxEloSJUq"  # The Google Drive folder ID
     if st.button("Save Annotations"):
         annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-        save_annotations_locally(annotations_list, save_path_directory)
+        save_annotations_to_drive(annotations_list, folder_id)
         # Reset session state
         st.session_state.annotations = {}
         st.session_state.current_index = 0
