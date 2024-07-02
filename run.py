@@ -1,65 +1,20 @@
 import streamlit as st
 from PIL import Image
 import pandas as pd
-from pydrive2.auth import GoogleAuth
-from pydrive2.drive import GoogleDrive
 import os
-import json
 
-# Function to authenticate and create a PyDrive client using the provided tokens
-def authenticate_with_tokens():
-    gauth = GoogleAuth()
-
-    # Load the OAuth2 tokens from a JSON string (assuming you have the token JSON)
-    token_json = '''
-    {
-        "issued_at": "1420258685042",
-        "scope": "READ",
-        "application_name": "ce1e94a2-9c3e-42fa-a2c6-1ee01815476b",
-        "refresh_token_issued_at": "1420258685042",
-        "status": "approved",
-        "refresh_token_status": "approved",
-        "api_product_list": "[PremiumWeatherAPI]",
-        "expires_in": "1799",
-        "developer.email": "tesla@weathersample.com",
-        "organization_id": "0",
-        "token_type": "BearerToken",
-        "refresh_token": "IFl7jlijYuexu6XVSSjLMJq8SVXGOAAq",
-        "client_id": "5jUAdGv9pBouF0wOH5keAVI35GBtx3dT",
-        "access_token": "I6daIgMSiUgYX1K2qgQWPi37ztS6",
-        "organization_name": "docs",
-        "refresh_token_expires_in": "28799",
-        "refresh_count": "0"
-    }
-    '''
-    tokens = json.loads(token_json)
-
-    gauth.credentials = {
-        'access_token': tokens['access_token'],
-        'refresh_token': tokens['refresh_token'],
-        'token_expiry': tokens['expires_in'],
-        'token_uri': 'https://oauth2.googleapis.com/token',
-        'client_id': tokens['client_id'],
-        'client_secret': 'YOUR_CLIENT_SECRET',  # Replace with your client secret
-        'scopes': ['https://www.googleapis.com/auth/drive']
-    }
-
-    drive = GoogleDrive(gauth)
-    return drive
-
-# Function to save annotations to Google Drive
-def save_annotations_to_drive(annotations, folder_id, drive):
-    # Create a DataFrame and save as CSV
+# Function to save annotations locally in the same directory as the uploaded images
+def save_annotations_locally(annotations, directory):
     df = pd.DataFrame(annotations, columns=['Image Name', 'Class'])
-    file_path = "annotations.csv"
+
+    # Ensure directory exists
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # Save to a file
+    file_path = os.path.join(directory, "annotations.csv")
     df.to_csv(file_path, index=False)
-
-    # Create a file in Google Drive
-    gfile = drive.CreateFile({'parents': [{'id': folder_id}], 'title': 'annotations.csv'})
-    gfile.SetContentFile(file_path)
-    gfile.Upload()
-
-    st.success(f"Annotations saved to Google Drive in folder ID: {folder_id}")
+    st.success(f"Annotations saved locally at {file_path}")
 
 # Streamlit app
 st.title("Image Annotation Tool")
@@ -130,13 +85,14 @@ if uploaded_files:
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
     # Save annotations
-    folder_id = "1cH0XlTJDGriYfVbSeUDSFsDdxEloSJUq"  # The Google Drive folder ID
     if st.button("Save Annotations"):
-        annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-        drive = authenticate_with_tokens()
-        save_annotations_to_drive(annotations_list, folder_id, drive)
-        # Reset session state
-        st.session_state.annotations = {}
-        st.session_state.current_index = 0
-
-
+        if uploaded_files:
+            # Use the directory of the first uploaded file
+            directory = os.path.dirname(uploaded_files[0].name)
+            annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
+            save_annotations_locally(annotations_list, directory)
+            # Reset session state
+            st.session_state.annotations = {}
+            st.session_state.current_index = 0
+        else:
+            st.error("No images uploaded.")
