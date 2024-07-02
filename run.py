@@ -84,15 +84,17 @@ if uploaded_files:
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
-    # Save annotations
+    # Save annotations and offer download button
     if st.button("Save Annotations"):
-        if uploaded_files:
-            # Use the directory of the first uploaded file
-            directory = os.path.dirname(uploaded_files[0].name)
-            annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-            save_annotations_locally(annotations_list, directory)
-            # Reset session state
-            st.session_state.annotations = {}
-            st.session_state.current_index = 0
-        else:
-            st.error("No images uploaded.")
+        annotations_list = [(img, cls) for img, cls in st.session_state.annotations.items()]
+        save_annotations_locally(annotations_list, '.')
+        df = pd.DataFrame(annotations_list, columns=['Image Name', 'Class'])
+        csv_data = convert_df_to_csv(df)
+        st.download_button(
+            label="Download Annotations as CSV",
+            data=csv_data,
+            file_name="annotations.csv",
+            mime="text/csv"
+        )
+
+    
