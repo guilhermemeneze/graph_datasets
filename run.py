@@ -1,28 +1,51 @@
-import subprocess
-import sys
-
-# Install PyGithub
-subprocess.check_call([sys.executable, "-m", "pip", "install", "PyGithub"])
-
 import streamlit as st
 from PIL import Image
 import pandas as pd
 import os
-from github import Github
+import base64
+import requests
+
+# GitHub details
+GITHUB_TOKEN = "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"
+GITHUB_REPO = "guilhermemeneze/annotations"
+GITHUB_PATH = "annotations"  # Path in the repository where annotations will be saved
 
 # Function to save annotations to GitHub
-def save_annotations_to_github(annotations, repo_name, path_in_repo, commit_message, github_token):
+def save_annotations_to_github(annotations):
     df = pd.DataFrame(annotations, columns=['Image Name', 'Class'])
-    csv_content = df.to_csv(index=False)
+    csv_data = df.to_csv(index=False)
+    base64_content = base64.b64encode(csv_data.encode()).decode()
+    file_path = f"{GITHUB_PATH}/annotations.csv"
 
-    g = Github(github_token)
-    repo = g.get_repo(repo_name)
-    try:
-        contents = repo.get_contents(path_in_repo)
-        repo.update_file(contents.path, commit_message, csv_content, contents.sha)
-    except:
-        repo.create_file(path_in_repo, commit_message, csv_content)
-    st.success(f"Annotations saved to GitHub repository {repo_name} at {path_in_repo}")
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{file_path}"
+    
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+
+    # Check if the file already exists
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        # File exists, update it
+        sha = response.json()['sha']
+        data = {
+            "message": "Update annotations",
+            "content": base64_content,
+            "sha": sha
+        }
+    else:
+        # File does not exist, create it
+        data = {
+            "message": "Create annotations",
+            "content": base64_content
+        }
+
+    response = requests.put(url, headers=headers, json=data)
+    if response.status_code in [200, 201]:
+        st.success(f"Annotations saved to GitHub at {file_path}")
+    else:
+        st.error("Failed to save annotations to GitHub")
 
 # Streamlit app
 st.title("Image Annotation Tool")
@@ -92,19 +115,10 @@ if uploaded_files:
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
-    # GitHub details for saving annotations
-    st.write("Save annotations to GitHub:")
-    repo_name = "guilhermemeneze/graph_datasets"
-    path_in_repo = "data/annotations.csv"
-    commit_message = st.text_input("Commit message:", "Add annotations")
-    github_token = st.text_input("GitHub Personal Access Token:", type="password")
-
-    if st.button("Save Annotations to GitHub"):
-        if commit_message and github_token:
-            annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-            save_annotations_to_github(annotations_list, repo_name, path_in_repo, commit_message, github_token)
-            # Reset session state
-            st.session_state.annotations = {}
-            st.session_state.current_index = 0
-        else:
-            st.warning("Please fill in all GitHub details.")
+    # Save annotations
+    if st.button("Save Annotations"):
+        annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
+        save_annotations_to_github(annotations_list)
+        # Reset session state
+        st.session_state.annotations = {}
+        st.session_state.current_index = 0
