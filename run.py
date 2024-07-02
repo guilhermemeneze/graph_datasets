@@ -2,53 +2,19 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import os
-import base64
-import requests
 
-# GitHub details
-GITHUB_TOKEN = "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"
-GITHUB_REPO = "guilhermemeneze/annotations"
-GITHUB_PATH = "annotations"  # Path in the repository where annotations will be saved
-
-# Function to save annotations to GitHub
-def save_annotations_to_github(annotations):
+# Function to save annotations locally
+def save_annotations_locally(annotations, directory):
     df = pd.DataFrame(annotations, columns=['Image Name', 'Class'])
-    csv_data = df.to_csv(index=False)
-    base64_content = base64.b64encode(csv_data.encode()).decode()
-    file_path = f"{GITHUB_PATH}/annotations.csv"
-
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{file_path}"
     
-    headers = {
-        "Authorization": f"token {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github.v3+json"
-    }
-
-    # Check if the file already exists
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        # File exists, update it
-        sha = response.json()['sha']
-        data = {
-            "message": "Update annotations",
-            "content": base64_content,
-            "sha": sha
-        }
-    elif response.status_code == 404:
-        # File does not exist, create it
-        data = {
-            "message": "Create annotations",
-            "content": base64_content
-        }
-    else:
-        st.error(f"Failed to check file status: {response.status_code} {response.json()}")
-        return
-
-    response = requests.put(url, headers=headers, json=data)
-    if response.status_code in [200, 201]:
-        st.success(f"Annotations saved to GitHub at {file_path}")
-    else:
-        st.error(f"Failed to save annotations to GitHub: {response.status_code} {response.json()}")
+    # Ensure directory exists
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    # Save to a file
+    file_path = os.path.join(directory, "annotations.csv")
+    df.to_csv(file_path, index=False)
+    st.success(f"Annotations saved locally at {file_path}")
 
 # Streamlit app
 st.title("Image Annotation Tool")
@@ -119,9 +85,13 @@ if uploaded_files:
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
     # Save annotations
+    save_path_directory = st.text_input("Enter directory to save annotations:", "annotations")
+    if not os.path.exists(save_path_directory):
+        st.warning(f"Directory {save_path_directory} does not exist. Please enter a valid directory.")
+
     if st.button("Save Annotations"):
         annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-        save_annotations_to_github(annotations_list)
+        save_annotations_locally(annotations_list, save_path_directory)
         # Reset session state
         st.session_state.annotations = {}
         st.session_state.current_index = 0
