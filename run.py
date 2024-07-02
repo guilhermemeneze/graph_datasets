@@ -2,22 +2,21 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import os
+from github import Github
 
-# Function to save annotations to a CSV file
-def save_annotations(annotations, directory):
+# Function to save annotations to GitHub
+def save_annotations_to_github(annotations, repo_name, path_in_repo, commit_message, github_token):
     df = pd.DataFrame(annotations, columns=['Image Name', 'Class'])
-    
-    # Find a unique filename
-    base_filename = "annotations"
-    extension = ".csv"
-    save_path = os.path.join(directory, base_filename + extension)
-    counter = 1
-    while os.path.exists(save_path):
-        save_path = os.path.join(directory, f"{base_filename}({counter}){extension}")
-        counter += 1
-    
-    df.to_csv(save_path, index=False)
-    st.success(f"Annotations saved to {save_path}")
+    csv_content = df.to_csv(index=False)
+
+    g = Github(github_token)
+    repo = g.get_repo(repo_name)
+    try:
+        contents = repo.get_contents(path_in_repo)
+        repo.update_file(contents.path, commit_message, csv_content, contents.sha)
+    except:
+        repo.create_file(path_in_repo, commit_message, csv_content)
+    st.success(f"Annotations saved to GitHub repository {repo_name} at {path_in_repo}")
 
 # Streamlit app
 st.title("Image Annotation Tool")
@@ -87,27 +86,20 @@ if uploaded_files:
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
     st.write(f"Annotated images: {', '.join(annotated_images)}")
 
-    # Predefined directories
-    predefined_directories = [
-        "C:\\Users\\Badger\\Downloads",
-        "C:\\Users\\Badger\\Documents",
-        "C:\\Users\\Badger\\Desktop"
-    ]
-    
-    selected_directory = st.selectbox("Choose a directory to save annotations:", predefined_directories + ["Custom"])
-    
-    if selected_directory == "Custom":
-        save_path_directory = st.text_input("Enter directory to save annotations:")
-    else:
-        save_path_directory = selected_directory
+    # GitHub details for saving annotations
+    st.write("Save annotations to GitHub:")
+    repo_name = "guilhermemeneze/graph_datasets"
+    path_in_repo = "data/annotations.csv"
+    commit_message = st.text_input("Commit message:", "Add annotations")
+    github_token = st.text_input("GitHub Personal Access Token:", type="password")
 
-    if not os.path.exists(save_path_directory):
-        st.warning(f"Directory {save_path_directory} does not exist. Please enter a valid directory.")
-    else:
-        # Save annotations
-        if st.button("Save Annotations"):
+    if st.button("Save Annotations to GitHub"):
+        if commit_message and github_token:
             annotations_list = [(name, label) for name, label in st.session_state.annotations.items()]
-            save_annotations(annotations_list, save_path_directory)
+            save_annotations_to_github(annotations_list, repo_name, path_in_repo, commit_message, github_token)
             # Reset session state
             st.session_state.annotations = {}
             st.session_state.current_index = 0
+        else:
+            st.warning("Please fill in all GitHub details.")
+
