@@ -1,3 +1,5 @@
+pip install streamlit==1.24.0
+
 import streamlit as st
 from PIL import Image
 import pandas as pd
