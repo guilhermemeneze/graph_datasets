@@ -32,6 +32,8 @@ if 'current_index' not in st.session_state:
     st.session_state.current_index = 0
 if 'class_label' not in st.session_state:
     st.session_state.class_label = None
+if 'skip_next' not in st.session_state:
+    st.session_state.skip_next = False
 
 # CSS to style the annotated button
 st.markdown(
@@ -75,12 +77,18 @@ if uploaded_files:
         if st.button("Previous Image") and st.session_state.current_index > 0:
             annotate_image()
             st.session_state.current_index -= 1
-            st.session_state.class_label = None
+            st.session_state.skip_next = True
+            st.experimental_rerun()
     with col3:
         if st.button("Next Image") and st.session_state.current_index < total_images - 1:
             annotate_image()
             st.session_state.current_index += 1
-            st.session_state.class_label = None
+            st.session_state.skip_next = True
+            st.experimental_rerun()
+
+    if st.session_state.skip_next:
+        st.session_state.skip_next = False
+        st.experimental_rerun()
 
     # Indicate annotated images
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
