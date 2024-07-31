@@ -74,15 +74,13 @@ if uploaded_files:
     with col1:
         if st.button("Previous Image") and st.session_state.current_index > 0:
             annotate_image()
-            st.session_state.current_index = (st.session_state.current_index - 1) % total_images
+            st.session_state.current_index -= 1
             st.session_state.class_label = None
-            st.experimental_rerun()
     with col3:
         if st.button("Next Image") and st.session_state.current_index < total_images - 1:
             annotate_image()
-            st.session_state.current_index = (st.session_state.current_index + 1) % total_images
+            st.session_state.current_index += 1
             st.session_state.class_label = None
-            st.experimental_rerun()
 
     # Indicate annotated images
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
