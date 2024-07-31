@@ -2,7 +2,6 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import os
-import io
 
 # Function to save annotations locally in the same directory as the uploaded images
 def save_annotations_locally(annotations, directory):
@@ -101,3 +100,4 @@ if uploaded_files:
             file_name="annotations.csv",
             mime="text/csv"
         )
+
