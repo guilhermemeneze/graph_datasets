@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import os
+import io
 
 # Function to save annotations locally in the same directory as the uploaded images
 def save_annotations_locally(annotations, directory):
@@ -74,15 +75,15 @@ if uploaded_files:
     with col1:
         if st.button("Previous Image") and st.session_state.current_index > 0:
             annotate_image()
-            st.session_state.current_index -= 1
+            st.session_state.current_index = (st.session_state.current_index - 1) % total_images
             st.session_state.class_label = None
     with col3:
         if st.button("Next Image") and st.session_state.current_index < total_images - 1:
             annotate_image()
-            st.session_state.current_index += 1
+            st.session_state.current_index = (st.session_state.current_index + 1) % total_images
             st.session_state.class_label = None
 
-    # Save the current annotation before moving on
+    # Save the current annotation
     annotate_image()
 
     # Indicate annotated images
@@ -101,4 +102,5 @@ if uploaded_files:
             file_name="annotations.csv",
             mime="text/csv"
         )
+
 
