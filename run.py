@@ -1,5 +1,3 @@
-from streamlit import runtime
-runtime.exists()
 import streamlit as st
 from PIL import Image
 import pandas as pd
