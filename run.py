@@ -2,7 +2,6 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import os
-import io
 
 # Function to save annotations locally in the same directory as the uploaded images
 def save_annotations_locally(annotations, directory):
@@ -68,23 +67,25 @@ if uploaded_files:
     selected_class = st.radio("Class", class_options, index=class_options.index(current_annotation))
 
     # Update class_label if a valid class is selected
-    st.session_state.class_label = selected_class if selected_class != 'None' else None
+    if selected_class != 'None':
+        st.session_state.class_label = selected_class
+    else:
+        st.session_state.class_label = None
 
     # Navigation buttons
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("Previous Image") and st.session_state.current_index > 0:
             annotate_image()
-            st.session_state.current_index = (st.session_state.current_index - 1) % total_images
+            st.session_state.current_index -= 1
             st.session_state.class_label = None
+            st.experimental_rerun()
     with col3:
         if st.button("Next Image") and st.session_state.current_index < total_images - 1:
             annotate_image()
-            st.session_state.current_index = (st.session_state.current_index + 1) % total_images
+            st.session_state.current_index += 1
             st.session_state.class_label = None
-
-    # Save the current annotation
-    annotate_image()
+            st.experimental_rerun()
 
     # Indicate annotated images
     annotated_images = [file.name for file in uploaded_files if file.name in st.session_state.annotations]
@@ -102,5 +103,6 @@ if uploaded_files:
             file_name="annotations.csv",
             mime="text/csv"
         )
+
 
 
